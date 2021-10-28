@@ -1,10 +1,13 @@
 import "./style/global.css";
 import * as PIXI from "pixi.js";
 import { Renderer } from "./renderer";
-import "./phys";
+import { Physics } from "./Physics";
 
 const start = async () => {
   const { app, stage } = new Renderer();
+
+  const physics = new Physics();
+  physics.toggleDebugRenderer();
 
   const container = new PIXI.Container();
 
@@ -38,9 +41,7 @@ const start = async () => {
   });
 };
 
-// start();
-
-// main.ts
+start();
 
 import MyWorker from "./worker?worker";
 
