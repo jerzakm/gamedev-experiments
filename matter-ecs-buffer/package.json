@@ -2,7 +2,7 @@
   "name": "matter-ecs-buffer",
   "version": "0.0.0",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --config vite.config.js",
     "build": "tsc && vite build",
     "preview": "vite preview"
   },

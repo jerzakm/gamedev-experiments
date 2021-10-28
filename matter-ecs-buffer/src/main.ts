@@ -39,3 +39,14 @@ const start = async () => {
 };
 
 // start();
+
+// main.ts
+
+import MyWorker from "./worker?worker";
+
+async function init() {
+  const worker = new MyWorker();
+  worker.postMessage("message");
+}
+
+init();
