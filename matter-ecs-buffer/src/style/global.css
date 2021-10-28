@@ -7,8 +7,13 @@
   margin-top: 60px;
 }
 
-#pixi-view {
+canvas {
   position: fixed;
   top: 0;
   left: 0;
+}
+
+#matter-canvas {
+  z-index: 9999;
+  mix-blend-mode: multiply;
 }

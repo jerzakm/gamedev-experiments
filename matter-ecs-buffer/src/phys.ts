@@ -1,7 +1,5 @@
 import * as Matter from "matter-js";
 
-// var Example = Example || {};
-
 var Engine = Matter.Engine,
   Render = Matter.Render,
   Runner = Matter.Runner,
@@ -20,11 +18,15 @@ var render = Render.create({
   element: document.body,
   engine: engine,
   options: {
-    width: 800,
-    height: 600,
+    width: window.innerWidth,
+    height: window.innerHeight,
     showAngleIndicator: true,
+    background: "transparent",
+    wireframeBackground: "transparent",
   },
 });
+
+render.canvas.id = "matter-canvas";
 
 console.log(render);
 
