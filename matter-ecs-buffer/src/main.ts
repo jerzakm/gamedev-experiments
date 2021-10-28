@@ -1,6 +1,7 @@
 import "./style/global.css";
 import * as PIXI from "pixi.js";
 import { Renderer } from "./renderer";
+import "./phys";
 
 const start = async () => {
   const { app, stage } = new Renderer();
@@ -33,7 +34,7 @@ const start = async () => {
   app.ticker.add((delta) => {
     // rotate the container!
     // use delta to create frame-independent transform
-    container.rotation -= 0.01 * delta;
+    container.rotation -= 0.001 * delta;
   });
 };
 
