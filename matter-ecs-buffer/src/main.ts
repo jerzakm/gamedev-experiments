@@ -36,12 +36,16 @@ const mainThreadExample = async () => {
   };
 
   const spawnRandomObject = () => {
-    const x = window.innerWidth / 2 + (Math.random() - 0.5) * 100;
-    const y = window.innerHeight / 2 + (Math.random() - 0.5) * 100;
-    const width = 6;
-    const height = 6;
+    const x =
+      window.innerWidth / 2 + (Math.random() - 0.5) * window.innerWidth * 0.6;
+    const y =
+      window.innerHeight / 2 + (Math.random() - 0.5) * window.innerHeight * 0.6;
+    const width = 6 + Math.random() * 10;
+    const height = width;
 
-    const id = physics.addBody(x, y, width, height, { restitution: 0.1 });
+    const id = physics.addBody(x, y, width, height, {
+      restitution: 0,
+    });
 
     const texture = PIXI.Texture.from("square.png");
     const sprite = new PIXI.Sprite(texture);
@@ -90,6 +94,7 @@ const mainThreadExample = async () => {
   app.ticker.add((delta) => {
     Engine.update(physics.engine, delta);
     syncPhysicsRender();
+    physics.applyRandomForces();
 
     Math.random() > 0.5 ? spawnRandomObject() : "";
   });

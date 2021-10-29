@@ -9,7 +9,7 @@ export class Renderer {
       width: window.innerWidth,
       height: window.innerHeight,
       backgroundColor: 0xcecece,
-      resolution: window.devicePixelRatio || 1,
+      resolution: 1,
       antialias: true,
     });
     // PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST;

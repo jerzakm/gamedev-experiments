@@ -1,5 +1,6 @@
 import {
   Bodies,
+  Body,
   Engine,
   IChamferableBodyDefinition,
   Render,
@@ -14,7 +15,7 @@ export class PhysicsMain {
     const engine = Engine.create();
     const world = engine.world;
     engine.gravity.x = 0;
-    engine.gravity.y = 20;
+    engine.gravity.y = 0;
     this.engine = engine;
     this.world = world;
   }
@@ -30,6 +31,7 @@ export class PhysicsMain {
           showAngleIndicator: true,
           background: "transparent",
           wireframeBackground: "transparent",
+          pixelRatio: 1,
         },
       });
 
@@ -54,6 +56,17 @@ export class PhysicsMain {
     World.addBody(this.world, body);
 
     return body.id;
+  }
+
+  public applyRandomForces() {
+    for (const body of this.world.bodies) {
+      if (Math.random() > 0.999) {
+        Body.applyForce(body, body.position, {
+          x: (Math.random() - 0.5) * body.density * 5000,
+          y: (Math.random() - 0.5) * body.density * 5000,
+        });
+      }
+    }
   }
 
   public getBodySyncData() {
