@@ -1,52 +1,109 @@
 import "./style/global.css";
 import * as PIXI from "pixi.js";
 import { Renderer } from "./renderer";
-import "./phys";
+import { PhysicsMain } from "./PhysicsMain";
+import MyWorker from "./worker?worker";
+import { Engine } from "matter-js";
+
+const setupWalls = (physics: PhysicsMain) => {
+  physics.addBody(window.innerWidth / 2, 0, window.innerWidth, 50, {
+    isStatic: true,
+  });
+  physics.addBody(
+    window.innerWidth / 2,
+    window.innerHeight,
+    window.innerWidth,
+    50,
+    {
+      isStatic: true,
+    }
+  );
+  physics.addBody(0, window.innerHeight / 2, 50, window.innerHeight, {
+    isStatic: true,
+  });
+  physics.addBody(
+    window.innerWidth,
+    window.innerHeight / 2,
+    50,
+    window.innerHeight,
+    {
+      isStatic: true,
+    }
+  );
+};
 
 const start = async () => {
   const { app, stage } = new Renderer();
+
+  const physics = new PhysicsMain();
+  physics.toggleDebugRenderer();
+
+  setupWalls(physics);
+
+  const physicsObjects: PhysicsSyncBody[] = [];
+
+  const spawnRandomObject = () => {
+    const x = window.innerWidth / 2 + (Math.random() - 0.5) * 100;
+    const y = window.innerHeight / 2 + (Math.random() - 0.5) * 100;
+    const width = 32;
+    const height = 32;
+
+    const id = physics.addBody(x, y, width, height, {});
+
+    const texture = PIXI.Texture.from("square.png");
+    const sprite = new PIXI.Sprite(texture);
+    sprite.anchor.set(0.5);
+    sprite.position.x = x;
+    sprite.position.y = y;
+    container.addChild(sprite);
+
+    physicsObjects.push({
+      id,
+      x,
+      y,
+      width,
+      height,
+      angle: 0,
+      sprite,
+    });
+  };
+
+  const syncPhysicsRender = () => {
+    const physData = physics.getBodySyncData();
+
+    for (const obj of physicsObjects) {
+      const { x, y, angle } = physData[obj.id];
+      obj.sprite.position.x = x;
+      obj.sprite.position.y = y;
+      obj.sprite.rotation = angle;
+    }
+  };
 
   const container = new PIXI.Container();
 
   stage.addChild(container);
 
-  // Create a new texture
-  const texture = PIXI.Texture.from("square.png");
-
-  // Create a 5x5 grid of bunnies
-  for (let i = 0; i < 25; i++) {
-    const bunny = new PIXI.Sprite(texture);
-    bunny.anchor.set(0.5);
-    bunny.x = (i % 5) * 40;
-    bunny.y = Math.floor(i / 5) * 40;
-    container.addChild(bunny);
-  }
-
-  // Move container to the center
-  container.x = app.screen.width / 2;
-  container.y = app.screen.height / 2;
-
-  // Center bunny sprite in local container coordinates
-  container.pivot.x = container.width / 2;
-  container.pivot.y = container.height / 2;
-
-  // Listen for animate update
   app.ticker.add((delta) => {
-    // rotate the container!
-    // use delta to create frame-independent transform
-    container.rotation -= 0.001 * delta;
+    Engine.update(physics.engine, delta);
+    syncPhysicsRender();
+
+    Math.random() > 0.99 ? spawnRandomObject() : "";
   });
 };
 
-// start();
+start();
 
-// main.ts
-
-import MyWorker from "./worker?worker";
-
-async function init() {
+async function initWorker() {
   const worker = new MyWorker();
   worker.postMessage("message");
 }
 
-init();
+interface PhysicsSyncBody {
+  id: string | number;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  angle: number;
+  sprite: PIXI.Sprite;
+}
