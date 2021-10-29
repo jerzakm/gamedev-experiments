@@ -45,15 +45,17 @@ const start = async () => {
   const spawnRandomObject = () => {
     const x = window.innerWidth / 2 + (Math.random() - 0.5) * 100;
     const y = window.innerHeight / 2 + (Math.random() - 0.5) * 100;
-    const width = 32;
-    const height = 32;
+    const width = 6;
+    const height = 6;
 
-    const id = physics.addBody(x, y, width, height, {});
+    const id = physics.addBody(x, y, width, height, { restitution: 0.1 });
 
     const texture = PIXI.Texture.from("square.png");
     const sprite = new PIXI.Sprite(texture);
     sprite.anchor.set(0.5);
     sprite.position.x = x;
+    sprite.width = width;
+    sprite.height = height;
     sprite.position.y = y;
     container.addChild(sprite);
 
@@ -66,6 +68,8 @@ const start = async () => {
       angle: 0,
       sprite,
     });
+
+    console.log(physicsObjects.length);
   };
 
   const syncPhysicsRender = () => {
@@ -87,7 +91,7 @@ const start = async () => {
     Engine.update(physics.engine, delta);
     syncPhysicsRender();
 
-    Math.random() > 0.99 ? spawnRandomObject() : "";
+    Math.random() > 0.5 ? spawnRandomObject() : "";
   });
 };
 
