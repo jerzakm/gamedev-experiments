@@ -1,14 +1,14 @@
 import "./style/global.css";
 import * as PIXI from "pixi.js";
 import { Renderer } from "./renderer";
-import { PhysicsMain } from "./PhysicsMain";
-import MyWorker from "./physicsWorker?worker";
+import { PhysicsRunner } from "./PhysicsMain";
+import PhysicsWorker from "./physicsWorker?worker";
 import { Engine } from "matter-js";
 
 const mainThreadExample = async () => {
   const physicsObjects: PhysicsSyncBody[] = [];
 
-  const setupWalls = (physics: PhysicsMain) => {
+  const setupWalls = (physics: PhysicsRunner) => {
     physics.addBody(window.innerWidth / 2, 0, window.innerWidth, 50, {
       isStatic: true,
     });
@@ -74,6 +74,8 @@ const mainThreadExample = async () => {
 
     for (const obj of physicsObjects) {
       const { x, y, angle } = physData[obj.id];
+
+      if (!obj.sprite) return;
       obj.sprite.position.x = x;
       obj.sprite.position.y = y;
       obj.sprite.rotation = angle;
@@ -82,7 +84,7 @@ const mainThreadExample = async () => {
 
   const { app, stage } = new Renderer();
 
-  const physics = new PhysicsMain();
+  const physics = new PhysicsRunner();
 
   physics.toggleDebugRenderer();
   setupWalls(physics);
@@ -98,16 +100,68 @@ const mainThreadExample = async () => {
 
     Math.random() > 0.5 ? spawnRandomObject() : "";
   });
-
-  initWorker();
 };
 
-mainThreadExample();
+async function workerExample() {
+  const worker = new PhysicsWorker();
 
-async function initWorker() {
-  const worker = new MyWorker();
+  const { app, stage } = new Renderer();
+  const container = new PIXI.Container();
+
+  stage.addChild(container);
+
+  const physicsObjects: PhysicsSyncBody[] = [];
+
+  const spawnRandomObject = () => {
+    const x =
+      window.innerWidth / 2 + (Math.random() - 0.5) * window.innerWidth * 0.6;
+    const y =
+      window.innerHeight / 2 + (Math.random() - 0.5) * window.innerHeight * 0.6;
+    const width = 6 + Math.random() * 10;
+    const height = width;
+
+    // const id = physics.addBody(x, y, width, height, {
+    //   restitution: 0,
+    // });
+
+    const texture = PIXI.Texture.from("square.png");
+    const sprite = new PIXI.Sprite(texture);
+    sprite.anchor.set(0.5);
+    sprite.position.x = x;
+    sprite.width = width;
+    sprite.height = height;
+    sprite.position.y = y;
+    container.addChild(sprite);
+
+    const newBody: PhysicsSyncBody = {
+      id: physicsObjects.length + 1,
+      x,
+      y,
+      width,
+      height,
+      angle: 0,
+      sprite: undefined,
+    };
+
+    worker.postMessage({
+      type: "ADD_BODY",
+      data: newBody,
+    });
+
+    newBody.sprite = sprite;
+
+    physicsObjects.push(newBody);
+  };
+
+  app.ticker.add((delta) => {
+    Math.random() > 0.5 ? spawnRandomObject() : "";
+  });
+
   worker.postMessage("message");
 }
+
+// mainThreadExample();
+workerExample();
 
 interface PhysicsSyncBody {
   id: string | number;
@@ -116,5 +170,5 @@ interface PhysicsSyncBody {
   width: number;
   height: number;
   angle: number;
-  sprite: PIXI.Sprite;
+  sprite: PIXI.Sprite | undefined;
 }

@@ -7,7 +7,7 @@ import {
   World,
 } from "matter-js";
 
-export class PhysicsMain {
+export class PhysicsRunner {
   engine: Engine;
   world: World;
   render: Render | undefined;

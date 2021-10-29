@@ -30,6 +30,7 @@ export class Physics {
       10,
       0,
       0,
+      //@ts-ignore
       function (x, y) {
         return Bodies.rectangle(x, y, 40, 40);
       }
