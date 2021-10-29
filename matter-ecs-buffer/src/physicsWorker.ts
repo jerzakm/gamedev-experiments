@@ -26,5 +26,10 @@ self.addEventListener("message", (e) => {
 
   const message = e.data || e;
 
-  console.log(message);
+  if (message.type == "ADD_BODY") {
+    const { x, y, width, height, options } = message.data;
+    physics.addBody(x, y, width, height, {
+      restitution: 0,
+    });
+  }
 });
