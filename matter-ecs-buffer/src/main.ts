@@ -2,45 +2,38 @@ import "./style/global.css";
 import * as PIXI from "pixi.js";
 import { Renderer } from "./renderer";
 import { PhysicsMain } from "./PhysicsMain";
-import MyWorker from "./worker?worker";
+import MyWorker from "./physicsWorker?worker";
 import { Engine } from "matter-js";
 
-const setupWalls = (physics: PhysicsMain) => {
-  physics.addBody(window.innerWidth / 2, 0, window.innerWidth, 50, {
-    isStatic: true,
-  });
-  physics.addBody(
-    window.innerWidth / 2,
-    window.innerHeight,
-    window.innerWidth,
-    50,
-    {
-      isStatic: true,
-    }
-  );
-  physics.addBody(0, window.innerHeight / 2, 50, window.innerHeight, {
-    isStatic: true,
-  });
-  physics.addBody(
-    window.innerWidth,
-    window.innerHeight / 2,
-    50,
-    window.innerHeight,
-    {
-      isStatic: true,
-    }
-  );
-};
-
-const start = async () => {
-  const { app, stage } = new Renderer();
-
-  const physics = new PhysicsMain();
-  physics.toggleDebugRenderer();
-
-  setupWalls(physics);
-
+const mainThreadExample = async () => {
   const physicsObjects: PhysicsSyncBody[] = [];
+
+  const setupWalls = (physics: PhysicsMain) => {
+    physics.addBody(window.innerWidth / 2, 0, window.innerWidth, 50, {
+      isStatic: true,
+    });
+    physics.addBody(
+      window.innerWidth / 2,
+      window.innerHeight,
+      window.innerWidth,
+      50,
+      {
+        isStatic: true,
+      }
+    );
+    physics.addBody(0, window.innerHeight / 2, 50, window.innerHeight, {
+      isStatic: true,
+    });
+    physics.addBody(
+      window.innerWidth,
+      window.innerHeight / 2,
+      50,
+      window.innerHeight,
+      {
+        isStatic: true,
+      }
+    );
+  };
 
   const spawnRandomObject = () => {
     const x = window.innerWidth / 2 + (Math.random() - 0.5) * 100;
@@ -69,7 +62,7 @@ const start = async () => {
       sprite,
     });
 
-    console.log(physicsObjects.length);
+    // console.log(physicsObjects.length);
   };
 
   const syncPhysicsRender = () => {
@@ -83,6 +76,13 @@ const start = async () => {
     }
   };
 
+  const { app, stage } = new Renderer();
+
+  const physics = new PhysicsMain();
+
+  physics.toggleDebugRenderer();
+  setupWalls(physics);
+
   const container = new PIXI.Container();
 
   stage.addChild(container);
@@ -93,9 +93,11 @@ const start = async () => {
 
     Math.random() > 0.5 ? spawnRandomObject() : "";
   });
+
+  initWorker();
 };
 
-start();
+mainThreadExample();
 
 async function initWorker() {
   const worker = new MyWorker();
