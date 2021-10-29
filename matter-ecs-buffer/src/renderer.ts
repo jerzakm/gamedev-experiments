@@ -10,9 +10,9 @@ export class Renderer {
       height: window.innerHeight,
       backgroundColor: 0xcecece,
       resolution: window.devicePixelRatio || 1,
-      antialias: false,
+      antialias: true,
     });
-    PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST;
+    // PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST;
 
     document.body.appendChild(this.app.view);
     this.app.view.id = "pixi-view";
