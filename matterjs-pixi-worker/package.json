@@ -1,5 +1,5 @@
 {
-  "name": "matter-ecs-buffer",
+  "name": "matterjs-pixi-worker",
   "version": "0.0.0",
   "scripts": {
     "dev": "vite --config vite.config.js",
