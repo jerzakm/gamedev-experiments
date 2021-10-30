@@ -6,7 +6,27 @@ import PhysicsWorker from "./physicsWorker?worker";
 import { Engine, IChamferableBodyDefinition } from "matter-js";
 
 const spawnChance = 0.5;
-const spawnAttemptTimer = 10;
+const spawnAttemptTimer = 1;
+const spawnFixedAmount = 3000;
+
+let bodySyncDelta = 0;
+let rendererFps = 0;
+let bodyCount = 0;
+let statsUpdateFrequency = 500;
+
+const statsUpdate = () => {
+  const statsDom = document.body.querySelector("#stats");
+
+  if (!statsDom) return;
+
+  statsDom.innerHTML = `
+  <span>Bodies</span><span>${bodyCount}</span>
+  <span>renderer_fps</span><span>${rendererFps.toFixed(0)}</span>
+  <span>physics_fps</span><span>${(1000 / bodySyncDelta).toFixed(0)}</span>
+  `;
+
+  setTimeout(statsUpdate, statsUpdateFrequency);
+};
 
 const mainThreadExample = async () => {
   const physicsObjects: IPhysicsSyncBody[] = [];
@@ -38,11 +58,11 @@ const mainThreadExample = async () => {
     );
   };
 
-  const spawnRandomObject = () => {
+  const spawnRandomDynamicSquare = () => {
     const x =
-      window.innerWidth / 2 + (Math.random() - 0.5) * window.innerWidth * 0.6;
+      window.innerWidth / 2 + (Math.random() - 0.5) * window.innerWidth * 0.8;
     const y =
-      window.innerHeight / 2 + (Math.random() - 0.5) * window.innerHeight * 0.6;
+      window.innerHeight / 2 + (Math.random() - 0.5) * window.innerHeight * 0.8;
     const width = 6 + Math.random() * 10;
     const height = width;
 
@@ -87,25 +107,39 @@ const mainThreadExample = async () => {
 
   const physics = new PhysicsRunner();
 
-  physics.toggleDebugRenderer();
+  // physics.toggleDebugRenderer();
   setupWalls(physics);
 
   const container = new PIXI.Container();
 
   stage.addChild(container);
 
+  for (let i = 0; i < spawnFixedAmount; i++) {
+    spawnRandomDynamicSquare();
+  }
+
   let lastSpawnAttempt = 0;
 
-  app.ticker.add((delta) => {
+  let delta = 0;
+
+  app.ticker.add(() => {
+    const start = performance.now();
     Engine.update(physics.engine, delta);
     syncPhysicsRender();
     physics.applyRandomForces();
+    physics.outOfBoundCheck();
 
     lastSpawnAttempt += delta;
     if (lastSpawnAttempt > spawnAttemptTimer) {
-      Math.random() > 1 - spawnChance ? spawnRandomObject() : "";
+      Math.random() > 1 - spawnChance ? spawnRandomDynamicSquare() : "";
       lastSpawnAttempt = 0;
     }
+
+    delta = performance.now() - start;
+
+    bodySyncDelta = delta;
+    bodyCount = physics.world.bodies.length;
+    rendererFps = app.ticker.FPS;
   });
 };
 
@@ -144,9 +178,9 @@ async function workerExample() {
 
   const spawnRandomDynamicSquare = () => {
     const x =
-      window.innerWidth / 2 + (Math.random() - 0.5) * window.innerWidth * 0.6;
+      window.innerWidth / 2 + (Math.random() - 0.5) * window.innerWidth * 0.8;
     const y =
-      window.innerHeight / 2 + (Math.random() - 0.5) * window.innerHeight * 0.6;
+      window.innerHeight / 2 + (Math.random() - 0.5) * window.innerHeight * 0.8;
 
     const options = {
       restitution: 0,
@@ -176,6 +210,8 @@ async function workerExample() {
   worker.addEventListener("message", (e) => {
     if (e.data.type == "BODY_SYNC") {
       const physData = e.data.data;
+
+      bodySyncDelta = e.data.delta;
 
       for (const obj of physicsObjects) {
         const { x, y, angle } = physData[obj.id];
@@ -208,20 +244,30 @@ async function workerExample() {
     }
   });
 
+  for (let i = 0; i < spawnFixedAmount; i++) {
+    spawnRandomDynamicSquare();
+  }
+
   let lastSpawnAttempt = 0;
+
+  let myDelta = 0;
 
   app.ticker.add((delta) => {
     lastSpawnAttempt += delta;
-
+    const start = performance.now();
     if (lastSpawnAttempt > spawnAttemptTimer) {
       Math.random() > 1 - spawnChance ? spawnRandomDynamicSquare() : "";
       lastSpawnAttempt = 0;
     }
+    myDelta = performance.now() - start;
+    bodyCount = physicsObjects.length;
+    rendererFps = app.ticker.FPS;
   });
 }
 
-mainThreadExample();
-// workerExample();
+// mainThreadExample();
+workerExample();
+statsUpdate();
 
 interface IPhysicsSyncBody {
   id: string | number;

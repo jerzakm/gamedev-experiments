@@ -10,20 +10,21 @@ import { PhysicsRunner } from "./PhysicsMain";
 
 const physics = new PhysicsRunner();
 
-const runner = (last = 0) => {
-  const now = performance.now();
-  const delta = now - last;
+const runner = (delta = 16) => {
+  const startTs = performance.now();
 
   Engine.update(physics.engine, delta);
 
   physics.applyRandomForces();
+  physics.outOfBoundCheck();
 
   self.postMessage({
     type: "BODY_SYNC",
     data: physics.getBodySyncData(),
+    delta,
   });
 
-  setTimeout(() => runner(now), 0);
+  setTimeout(() => runner(performance.now() - startTs), 0);
 };
 
 runner();

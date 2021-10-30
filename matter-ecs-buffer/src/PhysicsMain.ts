@@ -16,6 +16,10 @@ export class PhysicsRunner {
     const world = engine.world;
     engine.gravity.x = 0;
     engine.gravity.y = 0;
+    // engine.constraintIterations = 1;
+    // engine.positionIterations = 1;
+    // engine.velocityIterations = 1;
+    // engine.enableSleeping = true;
     this.engine = engine;
     this.world = world;
   }
@@ -60,10 +64,10 @@ export class PhysicsRunner {
 
   public applyRandomForces() {
     for (const body of this.world.bodies) {
-      if (Math.random() > 0.9995) {
+      if (Math.random() > 0.9997) {
         Body.applyForce(body, body.position, {
-          x: (Math.random() - 0.5) * body.density * 10000 * Math.random(),
-          y: (Math.random() - 0.5) * body.density * 10000 * Math.random(),
+          x: (Math.random() - 0.5) * body.density * 100 * Math.random(),
+          y: (Math.random() - 0.5) * body.density * 100 * Math.random(),
         });
       }
     }
@@ -81,5 +85,18 @@ export class PhysicsRunner {
     }
 
     return bodyData;
+  }
+
+  public outOfBoundCheck() {
+    for (const body of this.world.bodies) {
+      if (
+        body.position.x < -100 ||
+        body.position.x > 3000 ||
+        body.position.y < 0 ||
+        body.position.y > 3000
+      ) {
+        Body.setStatic(body, true);
+      }
+    }
   }
 }
