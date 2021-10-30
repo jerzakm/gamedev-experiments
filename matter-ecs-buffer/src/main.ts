@@ -5,9 +5,9 @@ import { PhysicsRunner } from "./PhysicsMain";
 import PhysicsWorker from "./physicsWorker?worker";
 import { Engine, IChamferableBodyDefinition } from "matter-js";
 
-const spawnChance = 0.5;
-const spawnAttemptTimer = 1;
-const spawnFixedAmount = 3000;
+const spawnerAmount = 10;
+const spawnerTimer = 1000;
+const spawnAtStart = 3000;
 
 let bodySyncDelta = 0;
 let rendererFps = 0;
@@ -114,7 +114,7 @@ const mainThreadExample = async () => {
 
   stage.addChild(container);
 
-  for (let i = 0; i < spawnFixedAmount; i++) {
+  for (let i = 0; i < spawnAtStart; i++) {
     spawnRandomDynamicSquare();
   }
 
@@ -126,12 +126,12 @@ const mainThreadExample = async () => {
     const start = performance.now();
     Engine.update(physics.engine, delta);
     syncPhysicsRender();
-    physics.applyRandomForces();
+    physics.applyForceToRandomBody();
     physics.outOfBoundCheck();
 
     lastSpawnAttempt += delta;
-    if (lastSpawnAttempt > spawnAttemptTimer) {
-      Math.random() > 1 - spawnChance ? spawnRandomDynamicSquare() : "";
+    if (lastSpawnAttempt > spawnerTimer) {
+      Math.random() > 1 - spawnerAmount ? spawnRandomDynamicSquare() : "";
       lastSpawnAttempt = 0;
     }
 
@@ -244,7 +244,23 @@ async function workerExample() {
     }
   });
 
-  for (let i = 0; i < spawnFixedAmount; i++) {
+  setInterval(() => {
+    spawnRandomDynamicSquare();
+  }, spawnerTimer);
+
+  const timedSpawner = () => {
+    for (let i = 0; i < spawnerAmount; i++) {
+      spawnRandomDynamicSquare();
+    }
+
+    setTimeout(() => {
+      timedSpawner();
+    }, spawnerTimer);
+  };
+
+  timedSpawner();
+
+  for (let i = 0; i < spawnAtStart; i++) {
     spawnRandomDynamicSquare();
   }
 
@@ -255,10 +271,7 @@ async function workerExample() {
   app.ticker.add((delta) => {
     lastSpawnAttempt += delta;
     const start = performance.now();
-    if (lastSpawnAttempt > spawnAttemptTimer) {
-      Math.random() > 1 - spawnChance ? spawnRandomDynamicSquare() : "";
-      lastSpawnAttempt = 0;
-    }
+
     myDelta = performance.now() - start;
     bodyCount = physicsObjects.length;
     rendererFps = app.ticker.FPS;

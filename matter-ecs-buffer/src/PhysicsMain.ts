@@ -16,9 +16,6 @@ export class PhysicsRunner {
     const world = engine.world;
     engine.gravity.x = 0;
     engine.gravity.y = 0;
-    // engine.constraintIterations = 1;
-    // engine.positionIterations = 1;
-    // engine.velocityIterations = 1;
     // engine.enableSleeping = true;
     this.engine = engine;
     this.world = world;
@@ -62,25 +59,24 @@ export class PhysicsRunner {
     return body;
   }
 
-  public applyRandomForces() {
-    for (const body of this.world.bodies) {
-      if (Math.random() > 0.9997) {
-        Body.applyForce(body, body.position, {
-          x: (Math.random() - 0.5) * body.density * 100 * Math.random(),
-          y: (Math.random() - 0.5) * body.density * 100 * Math.random(),
-        });
-      }
-    }
+  public applyForceToRandomBody() {
+    const bodyIndex = Math.round(Math.random() * this.world.bodies.length);
+    const body = this.world.bodies[bodyIndex];
+    if (!body) return;
+    Body.applyForce(body, body.position, {
+      x: (Math.random() - 0.5) * body.density * 25 * Math.random(),
+      y: (Math.random() - 0.5) * body.density * 25 * Math.random(),
+    });
   }
 
   public getBodySyncData() {
     const bodyData: any = {};
 
-    for (const body of this.world.bodies) {
-      bodyData[body.id] = {
-        x: body.position.x,
-        y: body.position.y,
-        angle: body.angle,
+    for (let i = 0; i < this.world.bodies.length; i++) {
+      bodyData[this.world.bodies[i].id] = {
+        x: this.world.bodies[i].position.x,
+        y: this.world.bodies[i].position.y,
+        angle: this.world.bodies[i].angle,
       };
     }
 

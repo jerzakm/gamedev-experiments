@@ -10,13 +10,20 @@ import { PhysicsRunner } from "./PhysicsMain";
 
 const physics = new PhysicsRunner();
 
+let counter = 0;
+
+const maxFps = 60;
+const deltaGoal = 1000 / maxFps;
+
 const runner = (delta = 16) => {
+  // console.log(delta);
   const startTs = performance.now();
 
   Engine.update(physics.engine, delta);
 
-  physics.applyRandomForces();
-  physics.outOfBoundCheck();
+  if (Math.random() > 0.5) {
+    physics.applyForceToRandomBody();
+  }
 
   self.postMessage({
     type: "BODY_SYNC",
@@ -24,10 +31,22 @@ const runner = (delta = 16) => {
     delta,
   });
 
-  setTimeout(() => runner(performance.now() - startTs), 0);
+  const currentDelta = performance.now() - startTs;
+  const goalDiff = Math.max(0, deltaGoal - currentDelta);
+
+  const d = Math.max(currentDelta, deltaGoal);
+
+  counter++;
+
+  setTimeout(() => runner(d), goalDiff);
 };
 
 runner();
+
+// once a second check for bodies out of bound
+setInterval(() => {
+  physics.outOfBoundCheck();
+}, 1000);
 
 self.addEventListener("message", (e) => {
   // add a body
