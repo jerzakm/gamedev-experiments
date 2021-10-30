@@ -55,15 +55,15 @@ export class PhysicsRunner {
     const body = Bodies.rectangle(x, y, width, height, options);
     World.addBody(this.world, body);
 
-    return body.id;
+    return body;
   }
 
   public applyRandomForces() {
     for (const body of this.world.bodies) {
-      if (Math.random() > 0.999) {
+      if (Math.random() > 0.9995) {
         Body.applyForce(body, body.position, {
-          x: (Math.random() - 0.5) * body.density * 5000,
-          y: (Math.random() - 0.5) * body.density * 5000,
+          x: (Math.random() - 0.5) * body.density * 10000 * Math.random(),
+          y: (Math.random() - 0.5) * body.density * 10000 * Math.random(),
         });
       }
     }
