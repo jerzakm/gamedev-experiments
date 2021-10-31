@@ -1,14 +1,14 @@
 import { PositionSyncMap } from "./main";
 import { getRapier } from "./rapier";
 
-const maxFps = 60;
+const maxFps = 500;
 const deltaGoal = 1000 / maxFps;
 
 async function init() {
   const RAPIER = await getRapier();
   console.log(RAPIER);
   // Use the RAPIER module here.
-  let gravity = { x: 0.0, y: 9 };
+  let gravity = { x: 0.0, y: 0.0 };
   let world = new RAPIER.World(gravity);
 
   // Create the ground
@@ -32,7 +32,10 @@ async function init() {
     let count = 0;
 
     world.forEachRigidBody((body) => {
-      syncObj[body.handle] = body.translation();
+      const { x, y } = body.translation();
+      const rotation = body.rotation();
+      syncObj[body.handle] = { x, y, rotation };
+
       count++;
     });
 
@@ -82,12 +85,21 @@ async function init() {
     if (message.type == "ADD_BODY") {
       const { x, y, width, height, options } = message.data;
       // const body = physics.addBody(x, y, width, height, options);
-      const rigidBody = world.createRigidBody(
-        RAPIER.RigidBodyDesc.newDynamic().setTranslation(x, y)
-      );
+
+      let rigidBody;
+
+      if (options.isStatic) {
+        rigidBody = world.createRigidBody(
+          RAPIER.RigidBodyDesc.newStatic().setTranslation(x, y)
+        );
+      } else {
+        rigidBody = world.createRigidBody(
+          RAPIER.RigidBodyDesc.newDynamic().setTranslation(x, y)
+        );
+      }
 
       const colliderDesc = new RAPIER.ColliderDesc(
-        new RAPIER.Cuboid(width, height)
+        new RAPIER.Cuboid(width / 2, height / 2)
       ).setTranslation(0, 0);
 
       const bodyCollider = world.createCollider(colliderDesc, rigidBody.handle);

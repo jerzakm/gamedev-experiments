@@ -4,9 +4,9 @@ import { Renderer } from "./renderer";
 import PhysicsWorker from "./physicsWorker?worker";
 // import { IChamferableBodyDefinition } from "matter-js";
 
-const spawnerAmount = 0;
+const spawnerAmount = 10;
 const spawnerTimer = 1000;
-const spawnAtStart = 10;
+const spawnAtStart = 3000;
 
 let bodySyncDelta = 0;
 let rendererFps = 0;
@@ -100,11 +100,11 @@ async function workerExample() {
         console.log(physData);
 
         for (const obj of physicsObjects) {
-          const { x, y, angle } = physData[obj.id];
+          const { x, y, rotation } = physData[obj.id];
           if (!obj.sprite) return;
           obj.sprite.position.x = x;
           obj.sprite.position.y = y;
-          obj.sprite.rotation = 0;
+          obj.sprite.rotation = rotation;
         }
       }
       if (e.data.type == "BODY_CREATED") {
@@ -201,5 +201,10 @@ export type PositionSyncMap = {
   [key: number]: {
     x: number;
     y: number;
+    rotation: number;
   };
 };
+
+export interface PhysicsObjectOptions {
+  isStatic: boolean;
+}
