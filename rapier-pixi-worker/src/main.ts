@@ -4,9 +4,9 @@ import { Renderer } from "./renderer";
 import PhysicsWorker from "./physicsWorker?worker";
 // import { IChamferableBodyDefinition } from "matter-js";
 
-const spawnerAmount = 1;
+const spawnerAmount = 0;
 const spawnerTimer = 1000;
-const spawnAtStart = 4500;
+const spawnAtStart = 10;
 
 let bodySyncDelta = 0;
 let rendererFps = 0;
@@ -97,12 +97,14 @@ async function workerExample() {
 
         bodySyncDelta = e.data.delta;
 
+        console.log(physData);
+
         for (const obj of physicsObjects) {
           const { x, y, angle } = physData[obj.id];
           if (!obj.sprite) return;
           obj.sprite.position.x = x;
           obj.sprite.position.y = y;
-          obj.sprite.rotation = angle;
+          obj.sprite.rotation = 0;
         }
       }
       if (e.data.type == "BODY_CREATED") {
@@ -126,6 +128,13 @@ async function workerExample() {
           sprite,
         });
       }
+      if (e.data.type == "PHYSICS_LOADED") {
+        // initial spawn
+        setupWalls();
+        for (let i = 0; i < spawnAtStart; i++) {
+          spawnRandomDynamicSquare();
+        }
+      }
     });
   };
 
@@ -139,16 +148,8 @@ async function workerExample() {
     }, spawnerTimer);
   };
 
-  // Setup
-  setupWalls();
-
   timedSpawner();
   initPhysicsHandler();
-
-  // initial spawn
-  for (let i = 0; i < spawnAtStart; i++) {
-    spawnRandomDynamicSquare();
-  }
 
   // gameloop
   let lastSpawnAttempt = 0;
@@ -164,7 +165,6 @@ async function workerExample() {
     bodyCount = physicsObjects.length;
     rendererFps = 60 / delta;
     delta = performance.now() - start;
-    console.log(delta);
     setTimeout(() => gameLoop(), 0);
   };
 
@@ -180,6 +180,10 @@ async function workerExample() {
   });
 }
 
+async function quickTest() {
+  console.log("test");
+}
+
 workerExample();
 initStats();
 
@@ -192,3 +196,10 @@ interface IPhysicsSyncBody {
   angle: number;
   sprite: PIXI.Sprite | undefined;
 }
+
+export type PositionSyncMap = {
+  [key: number]: {
+    x: number;
+    y: number;
+  };
+};

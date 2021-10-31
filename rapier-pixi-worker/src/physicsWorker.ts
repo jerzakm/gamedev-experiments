@@ -1,55 +1,111 @@
+import { PositionSyncMap } from "./main";
+import { getRapier } from "./rapier";
+
 const maxFps = 60;
 const deltaGoal = 1000 / maxFps;
 
-const runner = (delta = 16) => {
-  const startTs = performance.now();
+async function init() {
+  const RAPIER = await getRapier();
+  console.log(RAPIER);
+  // Use the RAPIER module here.
+  let gravity = { x: 0.0, y: 9 };
+  let world = new RAPIER.World(gravity);
 
-  // Engine.update(physics.engine, delta);
+  // Create the ground
+  // let groundColliderDesc = RAPIER.ColliderDesc.cuboid(10.0, 0.1);
+  // world.createCollider(groundColliderDesc);
 
-  if (Math.random() > 0.3) {
-    // physics.applyForceToRandomBody();
-  }
+  // Create a dynamic rigid-body.
+  // let rigidBodyDesc = RAPIER.RigidBodyDesc.newDynamic().setTranslation(
+  //   0.0,
+  //   1.0
+  // );
+  // let rigidBody = world.createRigidBody(rigidBodyDesc);
 
-  self.postMessage({
-    type: "BODY_SYNC",
-    // data: physics.getBodySyncData(),
-    delta,
-  });
+  // Create a cuboid collider attached to the dynamic rigidBody.
 
-  const currentDelta = performance.now() - startTs;
+  // Game loop. Replace by your own game loop system.
 
-  // this bit limits max FPS to 60
-  const deltaGoalDifference = Math.max(0, deltaGoal - currentDelta);
-  const d = Math.max(currentDelta, deltaGoal);
+  const syncPositions = (delta: number) => {
+    const syncObj: PositionSyncMap = {};
 
-  setTimeout(() => runner(d), deltaGoalDifference);
-};
+    let count = 0;
 
-runner();
-
-// once a second check for bodies out of bound
-setInterval(() => {
-  // physics.outOfBoundCheck();
-}, 1000);
-
-self.addEventListener("message", (e) => {
-  const message = e.data || e;
-
-  if (message.type == "ADD_BODY") {
-    const { x, y, width, height, options } = message.data;
-    // const body = physics.addBody(x, y, width, height, options);
+    world.forEachRigidBody((body) => {
+      syncObj[body.handle] = body.translation();
+      count++;
+    });
 
     self.postMessage({
-      type: "BODY_CREATED",
-      data: {
-        // id: body.id,
-        x,
-        y,
-        width,
-        height,
-        angle: 0,
-        sprite: undefined,
-      },
+      type: "BODY_SYNC",
+      data: syncObj,
+      delta,
     });
-  }
-});
+  };
+
+  let gameLoop = (delta = 16) => {
+    const startTs = performance.now();
+
+    if (Math.random() > 0.3) {
+      // physics.applyForceToRandomBody();
+    }
+
+    world.step();
+    syncPositions(delta);
+
+    // Get and print the rigid-body's position.
+    // let position = rigidBody.translation();
+    // console.log("Rigid-body position: ", position.x, position.y);
+
+    const currentDelta = performance.now() - startTs;
+
+    // this bit limits max FPS to 60
+    const deltaGoalDifference = Math.max(0, deltaGoal - currentDelta);
+    const d = Math.max(currentDelta, deltaGoal);
+
+    setTimeout(() => gameLoop(d), deltaGoalDifference);
+  };
+  gameLoop();
+
+  self.postMessage({
+    type: "PHYSICS_LOADED",
+  });
+
+  // once a second check for bodies out of bound
+  setInterval(() => {
+    // physics.outOfBoundCheck();
+  }, 1000);
+
+  self.addEventListener("message", (e) => {
+    const message = e.data || e;
+
+    if (message.type == "ADD_BODY") {
+      const { x, y, width, height, options } = message.data;
+      // const body = physics.addBody(x, y, width, height, options);
+      const rigidBody = world.createRigidBody(
+        RAPIER.RigidBodyDesc.newDynamic().setTranslation(x, y)
+      );
+
+      const colliderDesc = new RAPIER.ColliderDesc(
+        new RAPIER.Cuboid(width, height)
+      ).setTranslation(0, 0);
+
+      const bodyCollider = world.createCollider(colliderDesc, rigidBody.handle);
+
+      self.postMessage({
+        type: "BODY_CREATED",
+        data: {
+          id: bodyCollider.handle,
+          x,
+          y,
+          width,
+          height,
+          angle: 0,
+          sprite: undefined,
+        },
+      });
+    }
+  });
+}
+
+init();
