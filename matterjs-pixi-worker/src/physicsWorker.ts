@@ -21,7 +21,7 @@ const runner = (delta = 16) => {
 
   Engine.update(physics.engine, delta);
 
-  if (Math.random() > 0.5) {
+  if (Math.random() > 0.3) {
     physics.applyForceToRandomBody();
   }
 
@@ -49,8 +49,6 @@ setInterval(() => {
 }, 1000);
 
 self.addEventListener("message", (e) => {
-  // add a body
-
   const message = e.data || e;
 
   if (message.type == "ADD_BODY") {

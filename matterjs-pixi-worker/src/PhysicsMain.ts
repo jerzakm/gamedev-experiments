@@ -16,34 +16,8 @@ export class PhysicsRunner {
     const world = engine.world;
     engine.gravity.x = 0;
     engine.gravity.y = 0;
-    // engine.enableSleeping = true;
     this.engine = engine;
     this.world = world;
-  }
-
-  public toggleDebugRenderer() {
-    if (!this.render) {
-      const render = Render.create({
-        element: document.body,
-        engine: this.engine,
-        options: {
-          width: window.innerWidth,
-          height: window.innerHeight,
-          showAngleIndicator: true,
-          background: "transparent",
-          wireframeBackground: "transparent",
-          pixelRatio: 1,
-        },
-      });
-
-      render.canvas.id = "matter-canvas";
-
-      Render.run(render);
-      this.render = render;
-    } else {
-      Render.stop(this.render);
-      this.render.canvas.remove();
-    }
   }
 
   public addBody(
@@ -84,14 +58,14 @@ export class PhysicsRunner {
   }
 
   public outOfBoundCheck() {
-    for (const body of this.world.bodies) {
+    for (let i = 0; i < this.world.bodies.length; i++) {
       if (
-        body.position.x < -100 ||
-        body.position.x > 3000 ||
-        body.position.y < 0 ||
-        body.position.y > 3000
+        this.world.bodies[i].position.x < -100 ||
+        this.world.bodies[i].position.x > 3000 ||
+        this.world.bodies[i].position.y < 0 ||
+        this.world.bodies[i].position.y > 3000
       ) {
-        Body.setStatic(body, true);
+        Body.setStatic(this.world.bodies[i], true);
       }
     }
   }
