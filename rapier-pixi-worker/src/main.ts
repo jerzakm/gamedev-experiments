@@ -97,8 +97,6 @@ async function workerExample() {
 
         bodySyncDelta = e.data.delta;
 
-        console.log(physData);
-
         for (const obj of physicsObjects) {
           const { x, y, rotation } = physData[obj.id];
           if (!obj.sprite) return;
@@ -178,10 +176,6 @@ async function workerExample() {
     bodyCount = physicsObjects.length;
     rendererFps = app.ticker.FPS;
   });
-}
-
-async function quickTest() {
-  console.log("test");
 }
 
 workerExample();

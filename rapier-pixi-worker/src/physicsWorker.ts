@@ -6,25 +6,33 @@ const deltaGoal = 1000 / maxFps;
 
 async function init() {
   const RAPIER = await getRapier();
-  console.log(RAPIER);
   // Use the RAPIER module here.
   let gravity = { x: 0.0, y: 0.0 };
   let world = new RAPIER.World(gravity);
 
-  // Create the ground
-  // let groundColliderDesc = RAPIER.ColliderDesc.cuboid(10.0, 0.1);
-  // world.createCollider(groundColliderDesc);
+  const applyForceToRandomBody = () => {
+    const bodyCount = world.bodies.len();
 
-  // Create a dynamic rigid-body.
-  // let rigidBodyDesc = RAPIER.RigidBodyDesc.newDynamic().setTranslation(
-  //   0.0,
-  //   1.0
-  // );
-  // let rigidBody = world.createRigidBody(rigidBodyDesc);
+    if (bodyCount == 0) return;
+    const bodyIndex = Math.round(Math.random() * bodyCount);
 
-  // Create a cuboid collider attached to the dynamic rigidBody.
+    const body = world.getRigidBody(bodyIndex);
 
-  // Game loop. Replace by your own game loop system.
+    console.log(body);
+
+    body.applyForce(
+      {
+        x: 10,
+        y: 10,
+      },
+      true
+    );
+    // if (!body) return;
+    // Body.applyForce(body, body.position, {
+    //   x: (Math.random() - 0.5) * body.density * 25 * Math.random(),
+    //   y: (Math.random() - 0.5) * body.density * 25 * Math.random(),
+    // });
+  };
 
   const syncPositions = (delta: number) => {
     const syncObj: PositionSyncMap = {};
@@ -50,15 +58,11 @@ async function init() {
     const startTs = performance.now();
 
     if (Math.random() > 0.3) {
-      // physics.applyForceToRandomBody();
+      applyForceToRandomBody();
     }
 
     world.step();
     syncPositions(delta);
-
-    // Get and print the rigid-body's position.
-    // let position = rigidBody.translation();
-    // console.log("Rigid-body position: ", position.x, position.y);
 
     const currentDelta = performance.now() - startTs;
 
