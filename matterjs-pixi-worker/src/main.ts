@@ -1,9 +1,8 @@
 import "./style/global.css";
 import * as PIXI from "pixi.js";
 import { Renderer } from "./renderer";
-import { PhysicsRunner } from "./PhysicsMain";
 import PhysicsWorker from "./physicsWorker?worker";
-import { Engine, IChamferableBodyDefinition } from "matter-js";
+import { IChamferableBodyDefinition } from "matter-js";
 
 const spawnerAmount = 1;
 const spawnerTimer = 1000;

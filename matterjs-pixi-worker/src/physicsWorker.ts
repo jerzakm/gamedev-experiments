@@ -1,22 +1,12 @@
-import {
-  Bodies,
-  Engine,
-  IChamferableBodyDefinition,
-  Render,
-  Runner,
-  World,
-} from "matter-js";
+import { Engine } from "matter-js";
 import { PhysicsRunner } from "./PhysicsMain";
 
 const physics = new PhysicsRunner();
-
-let counter = 0;
 
 const maxFps = 60;
 const deltaGoal = 1000 / maxFps;
 
 const runner = (delta = 16) => {
-  // console.log(delta);
   const startTs = performance.now();
 
   Engine.update(physics.engine, delta);
@@ -32,13 +22,12 @@ const runner = (delta = 16) => {
   });
 
   const currentDelta = performance.now() - startTs;
-  const goalDiff = Math.max(0, deltaGoal - currentDelta);
 
+  // this bit limits max FPS to 60
+  const deltaGoalDifference = Math.max(0, deltaGoal - currentDelta);
   const d = Math.max(currentDelta, deltaGoal);
 
-  counter++;
-
-  setTimeout(() => runner(d), goalDiff);
+  setTimeout(() => runner(d), deltaGoalDifference);
 };
 
 runner();
