@@ -4,6 +4,8 @@ import { getRapier } from "./rapier";
 const maxFps = 500;
 const deltaGoal = 1000 / maxFps;
 
+const bodyAddQueue: any[] = [];
+
 async function init() {
   const RAPIER = await getRapier();
   // Use the RAPIER module here.
@@ -72,6 +74,43 @@ async function init() {
       applyForceToRandomBody();
     }
 
+    while (bodyAddQueue.length > 0) {
+      const { x, y, width, height, options } = bodyAddQueue[0];
+
+      let rigidBody;
+
+      if (options.isStatic) {
+        rigidBody = world.createRigidBody(
+          RAPIER.RigidBodyDesc.newStatic().setTranslation(x, y)
+        );
+      } else {
+        rigidBody = world.createRigidBody(
+          RAPIER.RigidBodyDesc.newDynamic().setTranslation(x, y)
+        );
+      }
+
+      const colliderDesc = new RAPIER.ColliderDesc(
+        new RAPIER.Cuboid(width / 2, height / 2)
+      ).setTranslation(0, 0);
+
+      const bodyCollider = world.createCollider(colliderDesc, rigidBody.handle);
+
+      bodyAddQueue.shift();
+
+      self.postMessage({
+        type: "BODY_CREATED",
+        data: {
+          id: bodyCollider.handle,
+          x,
+          y,
+          width,
+          height,
+          angle: 0,
+          sprite: undefined,
+        },
+      });
+    }
+
     world.timestep = delta;
 
     world.step();
@@ -100,39 +139,7 @@ async function init() {
     const message = e.data || e;
 
     if (message.type == "ADD_BODY") {
-      const { x, y, width, height, options } = message.data;
-      // const body = physics.addBody(x, y, width, height, options);
-
-      let rigidBody;
-
-      if (options.isStatic) {
-        rigidBody = world.createRigidBody(
-          RAPIER.RigidBodyDesc.newStatic().setTranslation(x, y)
-        );
-      } else {
-        rigidBody = world.createRigidBody(
-          RAPIER.RigidBodyDesc.newDynamic().setTranslation(x, y)
-        );
-      }
-
-      const colliderDesc = new RAPIER.ColliderDesc(
-        new RAPIER.Cuboid(width / 2, height / 2)
-      ).setTranslation(0, 0);
-
-      const bodyCollider = world.createCollider(colliderDesc, rigidBody.handle);
-
-      self.postMessage({
-        type: "BODY_CREATED",
-        data: {
-          id: bodyCollider.handle,
-          x,
-          y,
-          width,
-          height,
-          angle: 0,
-          sprite: undefined,
-        },
-      });
+      bodyAddQueue.push(message.data);
     }
   });
 }
