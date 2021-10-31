@@ -4,9 +4,9 @@ import { Renderer } from "./renderer";
 import PhysicsWorker from "./physicsWorker?worker";
 // import { IChamferableBodyDefinition } from "matter-js";
 
-const spawnerAmount = 10;
+const spawnerAmount = 20;
 const spawnerTimer = 1000;
-const spawnAtStart = 3000;
+const spawnAtStart = 5000;
 
 let bodySyncDelta = 0;
 let rendererFps = 0;
@@ -155,27 +155,19 @@ async function workerExample() {
 
   app.ticker.stop();
 
+  let start = performance.now();
   const gameLoop = () => {
-    const start = performance.now();
+    start = performance.now();
     app.render();
     lastSpawnAttempt += delta;
 
     bodyCount = physicsObjects.length;
-    rendererFps = 60 / delta;
     delta = performance.now() - start;
+    rendererFps = 60 / delta;
     setTimeout(() => gameLoop(), 0);
   };
 
   gameLoop();
-
-  app.ticker.add(() => {
-    lastSpawnAttempt += delta;
-    const start = performance.now();
-
-    delta = performance.now() - start;
-    bodyCount = physicsObjects.length;
-    rendererFps = app.ticker.FPS;
-  });
 }
 
 workerExample();

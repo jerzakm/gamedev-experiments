@@ -17,21 +17,16 @@ async function init() {
     const bodyIndex = Math.round(Math.random() * bodyCount);
 
     const body = world.getRigidBody(bodyIndex);
+    if (!body) return;
+    const mass = body.mass();
 
-    console.log(body);
-
-    body.applyForce(
+    body.applyImpulse(
       {
-        x: 10,
-        y: 10,
+        x: (Math.random() - 0.5) * mass ** 2 * 0.5,
+        y: (Math.random() - 0.5) * mass ** 2 * 0.5,
       },
       true
     );
-    // if (!body) return;
-    // Body.applyForce(body, body.position, {
-    //   x: (Math.random() - 0.5) * body.density * 25 * Math.random(),
-    //   y: (Math.random() - 0.5) * body.density * 25 * Math.random(),
-    // });
   };
 
   const syncPositions = (delta: number) => {
@@ -54,12 +49,30 @@ async function init() {
     });
   };
 
+  const outOfBoundCheck = () => {
+    world.forEachRigidBody((body) => {
+      const { x, y } = body.translation();
+
+      if (Math.abs(x) + Math.abs(y) > 6000) {
+        body.setTranslation(
+          {
+            x: 100,
+            y: 100,
+          },
+          true
+        );
+      }
+    });
+  };
+
   let gameLoop = (delta = 16) => {
     const startTs = performance.now();
 
     if (Math.random() > 0.3) {
       applyForceToRandomBody();
     }
+
+    world.timestep = delta;
 
     world.step();
     syncPositions(delta);
@@ -80,7 +93,7 @@ async function init() {
 
   // once a second check for bodies out of bound
   setInterval(() => {
-    // physics.outOfBoundCheck();
+    // outOfBoundCheck();
   }, 1000);
 
   self.addEventListener("message", (e) => {
