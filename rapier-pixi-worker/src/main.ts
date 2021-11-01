@@ -4,9 +4,9 @@ import { Renderer } from "./renderer";
 import PhysicsWorker from "./physicsWorker?worker";
 // import { IChamferableBodyDefinition } from "matter-js";
 
-const spawnerAmount = 20;
+const spawnerAmount = 1;
 const spawnerTimer = 1000;
-const spawnAtStart = 5000;
+const spawnAtStart = 4500;
 
 let bodySyncDelta = 0;
 let rendererFps = 0;
