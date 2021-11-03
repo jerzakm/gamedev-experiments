@@ -2,32 +2,8 @@ import "./style/global.css";
 import * as PIXI from "pixi.js";
 import { Renderer } from "./renderer";
 import PhysicsWorker from "./physicsWorker?worker";
-// import { IChamferableBodyDefinition } from "matter-js";
 
-const spawnerAmount = 1;
-const spawnerTimer = 1000;
-const spawnAtStart = 4500;
-
-let bodySyncDelta = 0;
-let rendererFps = 0;
-let bodyCount = 0;
-let statsUpdateFrequency = 500;
-
-const initStats = () => {
-  const statsDom = document.body.querySelector("#stats");
-
-  if (!statsDom) return;
-
-  statsDom.innerHTML = `
-  <span>Bodies</span><span>${bodyCount}</span>
-  <span>renderer_fps</span><span>${rendererFps.toFixed(0)}</span>
-  <span>physics_fps</span><span>${(1000 / bodySyncDelta).toFixed(0)}</span>
-  `;
-
-  setTimeout(initStats, statsUpdateFrequency);
-};
-
-async function workerExample() {
+async function startGame() {
   const worker = new PhysicsWorker();
 
   const { app, stage } = new Renderer();
@@ -35,28 +11,12 @@ async function workerExample() {
 
   stage.addChild(container);
 
-  const physicsObjects: IPhysicsSyncBody[] = [];
+  const gameObjects: GameObject[] = [];
 
-  const addBody = (
-    x = 0,
-    y = 0,
-    width = 10,
-    height = 10,
-    options: any = {
-      restitution: 0,
-    }
-  ) => {
-    const newBody = {
-      x,
-      y,
-      width,
-      height,
-      options,
-    };
-
+  const addGameObject = (object: GameObject) => {
     worker.postMessage({
       type: "ADD_BODY",
-      data: newBody,
+      data: object,
     });
   };
 
@@ -71,21 +31,47 @@ async function workerExample() {
     };
 
     const size = 4 + 10 * Math.random();
-    addBody(x, y, size, size, options);
+    addGameObject(x, y, size, size, options);
   };
 
   const setupWalls = () => {
-    addBody(window.innerWidth / 2, 0, window.innerWidth, 50, {
-      isStatic: true,
+    const thickness = 50;
+
+    addGameObject({
+      angle: 0,
+      height: window.innerHeight,
+      width: thickness,
+      id: -1,
+      type: "WALL",
+      x: 0,
+      y: window.innerHeight / 2,
     });
-    addBody(window.innerWidth / 2, window.innerHeight, window.innerWidth, 50, {
-      isStatic: true,
+    addGameObject({
+      angle: 0,
+      height: window.innerHeight,
+      width: thickness,
+      id: -1,
+      type: "WALL",
+      x: window.innerWidth,
+      y: window.innerHeight / 2,
     });
-    addBody(0, window.innerHeight / 2, 50, window.innerHeight, {
-      isStatic: true,
+    addGameObject({
+      angle: 0,
+      height: thickness,
+      width: window.innerWidth,
+      id: -1,
+      type: "WALL",
+      x: window.innerWidth / 2,
+      y: window.innerHeight,
     });
-    addBody(window.innerWidth, window.innerHeight / 2, 50, window.innerHeight, {
-      isStatic: true,
+    addGameObject({
+      angle: 0,
+      height: thickness,
+      width: window.innerWidth,
+      id: -1,
+      type: "WALL",
+      x: window.innerWidth / 2,
+      y: 0,
     });
   };
 
@@ -94,10 +80,7 @@ async function workerExample() {
     worker.addEventListener("message", (e) => {
       if (e.data.type == "BODY_SYNC") {
         const physData = e.data.data;
-
-        bodySyncDelta = e.data.delta;
-
-        for (const obj of physicsObjects) {
+        for (const obj of gameObjects) {
           const { x, y, rotation } = physData[obj.id];
           if (!obj.sprite) return;
           obj.sprite.position.x = x;
@@ -108,7 +91,7 @@ async function workerExample() {
       if (e.data.type == "BODY_CREATED") {
         const texture = PIXI.Texture.from("square.png");
         const sprite = new PIXI.Sprite(texture);
-        const { x, y, width, height, id }: IPhysicsSyncBody = e.data.data;
+        const { x, y, width, height, id }: GameObject = e.data.data;
         sprite.anchor.set(0.5);
         sprite.position.x = x;
         sprite.position.y = y;
@@ -116,10 +99,11 @@ async function workerExample() {
         sprite.height = height;
         container.addChild(sprite);
 
-        physicsObjects.push({
+        gameObjects.push({
           id,
           x,
           y,
+          type: "CRATE",
           width,
           height,
           angle: 0,
@@ -129,24 +113,32 @@ async function workerExample() {
       if (e.data.type == "PHYSICS_LOADED") {
         // initial spawn
         setupWalls();
-        for (let i = 0; i < spawnAtStart; i++) {
-          spawnRandomDynamicSquare();
-        }
+        spawnPlayer();
       }
     });
   };
 
-  const timedSpawner = () => {
-    for (let i = 0; i < spawnerAmount; i++) {
-      spawnRandomDynamicSquare();
-    }
-
-    setTimeout(() => {
-      timedSpawner();
-    }, spawnerTimer);
+  const spawnPlayer = () => {
+    const player: GameObject = {
+      angle: 0,
+      height: 32,
+      width: 32,
+      id: -1,
+      x: window.innerWidth / 2,
+      y: window.innerHeight / 2,
+      type: "PLAYER",
+      graphics: {
+        draw: true,
+        shape: "circle",
+        line: 0xefefef,
+      },
+    };
+    worker.postMessage({
+      type: "ADD_BODY",
+      data: player,
+    });
   };
 
-  timedSpawner();
   initPhysicsHandler();
 
   // gameloop
@@ -161,26 +153,30 @@ async function workerExample() {
     app.render();
     lastSpawnAttempt += delta;
 
-    bodyCount = physicsObjects.length;
     delta = performance.now() - start;
-    rendererFps = 60 / delta;
     setTimeout(() => gameLoop(), 0);
   };
 
   gameLoop();
 }
 
-workerExample();
-initStats();
+startGame();
 
-interface IPhysicsSyncBody {
+export interface GameObject {
   id: string | number;
+  type: string;
   x: number;
   y: number;
   width: number;
   height: number;
   angle: number;
-  sprite: PIXI.Sprite | undefined;
+  sprite?: PIXI.Sprite | undefined;
+  graphics?: {
+    draw: boolean;
+    shape: string;
+    line: number;
+    fill?: number;
+  };
 }
 
 export type PositionSyncMap = {
@@ -193,4 +189,13 @@ export type PositionSyncMap = {
 
 export interface PhysicsObjectOptions {
   isStatic: boolean;
+}
+
+export enum Shape {
+  SQUARE,
+  CIRCLE,
+}
+
+export enum MessageType {
+  SPAWN_PLAYER,
 }

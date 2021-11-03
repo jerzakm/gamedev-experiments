@@ -1,35 +1,16 @@
-import { PositionSyncMap } from "./main";
+import { GameObject, PositionSyncMap } from "./main";
 import { getRapier } from "./rapier";
 
 const maxFps = 500;
 const deltaGoal = 1000 / maxFps;
 
-const bodyAddQueue: any[] = [];
+const spawnQueue: any[] = [];
 
 async function init() {
   const RAPIER = await getRapier();
   // Use the RAPIER module here.
-  let gravity = { x: 0.0, y: 0.0 };
+  let gravity = { x: 0.01, y: 0.0 };
   let world = new RAPIER.World(gravity);
-
-  const applyForceToRandomBody = () => {
-    const bodyCount = world.bodies.len();
-
-    if (bodyCount == 0) return;
-    const bodyIndex = Math.round(Math.random() * bodyCount);
-
-    const body = world.getRigidBody(bodyIndex);
-    if (!body) return;
-    const mass = body.mass();
-
-    body.applyImpulse(
-      {
-        x: (Math.random() - 0.5) * mass ** 2 * 0.5,
-        y: (Math.random() - 0.5) * mass ** 2 * 0.5,
-      },
-      true
-    );
-  };
 
   const syncPositions = (delta: number) => {
     const syncObj: PositionSyncMap = {};
@@ -70,44 +51,38 @@ async function init() {
   let gameLoop = (delta = 16) => {
     const startTs = performance.now();
 
-    if (Math.random() > 0.3) {
-      applyForceToRandomBody();
-    }
-
-    while (bodyAddQueue.length > 0) {
-      const { x, y, width, height, options } = bodyAddQueue[0];
+    while (spawnQueue.length > 0) {
+      const b: GameObject = spawnQueue[0];
 
       let rigidBody;
 
-      if (options.isStatic) {
+      if (b.type == "WALL") {
         rigidBody = world.createRigidBody(
-          RAPIER.RigidBodyDesc.newStatic().setTranslation(x, y)
+          RAPIER.RigidBodyDesc.newStatic().setTranslation(b.x, b.y)
         );
       } else {
         rigidBody = world.createRigidBody(
-          RAPIER.RigidBodyDesc.newDynamic().setTranslation(x, y)
+          RAPIER.RigidBodyDesc.newDynamic().setTranslation(b.x, b.y)
         );
       }
 
-      const colliderDesc = new RAPIER.ColliderDesc(
-        new RAPIER.Cuboid(width / 2, height / 2)
+      let colliderDesc;
+
+      console.log(b);
+
+      colliderDesc = new RAPIER.ColliderDesc(
+        new RAPIER.Cuboid(b.width / 2, b.height / 2)
       ).setTranslation(0, 0);
 
       const bodyCollider = world.createCollider(colliderDesc, rigidBody.handle);
 
-      bodyAddQueue.shift();
+      spawnQueue.shift();
+
+      b.id = bodyCollider.handle;
 
       self.postMessage({
         type: "BODY_CREATED",
-        data: {
-          id: bodyCollider.handle,
-          x,
-          y,
-          width,
-          height,
-          angle: 0,
-          sprite: undefined,
-        },
+        data: b,
       });
     }
 
@@ -139,7 +114,7 @@ async function init() {
     const message = e.data || e;
 
     if (message.type == "ADD_BODY") {
-      bodyAddQueue.push(message.data);
+      spawnQueue.push(message.data);
     }
   });
 }
