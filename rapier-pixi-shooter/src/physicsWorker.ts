@@ -9,7 +9,7 @@ const spawnQueue: any[] = [];
 async function init() {
   const RAPIER = await getRapier();
   // Use the RAPIER module here.
-  let gravity = { x: 0.01, y: 0.0 };
+  let gravity = { x: 0.0, y: 0.0 };
   let world = new RAPIER.World(gravity);
 
   const syncPositions = (delta: number) => {
@@ -68,11 +68,15 @@ async function init() {
 
       let colliderDesc;
 
-      console.log(b);
-
-      colliderDesc = new RAPIER.ColliderDesc(
-        new RAPIER.Cuboid(b.width / 2, b.height / 2)
-      ).setTranslation(0, 0);
+      if (b.shape == "CIRCLE") {
+        colliderDesc = new RAPIER.ColliderDesc(
+          new RAPIER.Ball(b.width / 2)
+        ).setTranslation(0, 0);
+      } else {
+        colliderDesc = new RAPIER.ColliderDesc(
+          new RAPIER.Cuboid(b.width / 2, b.height / 2)
+        ).setTranslation(0, 0);
+      }
 
       const bodyCollider = world.createCollider(colliderDesc, rigidBody.handle);
 

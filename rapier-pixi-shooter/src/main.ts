@@ -10,6 +10,8 @@ async function startGame() {
   const container = new PIXI.Container();
 
   stage.addChild(container);
+  const g = new PIXI.Graphics();
+  stage.addChild(g);
 
   const gameObjects: GameObject[] = [];
 
@@ -31,11 +33,10 @@ async function startGame() {
     };
 
     const size = 4 + 10 * Math.random();
-    addGameObject(x, y, size, size, options);
   };
 
   const setupWalls = () => {
-    const thickness = 50;
+    const thickness = 100;
 
     addGameObject({
       angle: 0,
@@ -43,6 +44,12 @@ async function startGame() {
       width: thickness,
       id: -1,
       type: "WALL",
+      shape: "rect",
+      graphics: {
+        draw: true,
+        line: 0x000000,
+        fill: 0x555555,
+      },
       x: 0,
       y: window.innerHeight / 2,
     });
@@ -52,6 +59,12 @@ async function startGame() {
       width: thickness,
       id: -1,
       type: "WALL",
+      shape: "rect",
+      graphics: {
+        draw: true,
+        line: 0x000000,
+        fill: 0x555555,
+      },
       x: window.innerWidth,
       y: window.innerHeight / 2,
     });
@@ -61,6 +74,12 @@ async function startGame() {
       width: window.innerWidth,
       id: -1,
       type: "WALL",
+      shape: "rect",
+      graphics: {
+        draw: true,
+        line: 0x000000,
+        fill: 0x555555,
+      },
       x: window.innerWidth / 2,
       y: window.innerHeight,
     });
@@ -70,6 +89,12 @@ async function startGame() {
       width: window.innerWidth,
       id: -1,
       type: "WALL",
+      shape: "rect",
+      graphics: {
+        draw: true,
+        line: 0x000000,
+        fill: 0x555555,
+      },
       x: window.innerWidth / 2,
       y: 0,
     });
@@ -89,26 +114,30 @@ async function startGame() {
         }
       }
       if (e.data.type == "BODY_CREATED") {
-        const texture = PIXI.Texture.from("square.png");
-        const sprite = new PIXI.Sprite(texture);
-        const { x, y, width, height, id }: GameObject = e.data.data;
-        sprite.anchor.set(0.5);
-        sprite.position.x = x;
-        sprite.position.y = y;
-        sprite.width = width;
-        sprite.height = height;
-        container.addChild(sprite);
+        // const texture = PIXI.Texture.from("square.png");
+        // const sprite = new PIXI.Sprite(texture);
+        // const { x, y, width, height, id }: GameObject = e.data.data;
+        // sprite.anchor.set(0.5);
+        // sprite.position.x = x;
+        // sprite.position.y = y;
+        // sprite.width = width;
+        // sprite.height = height;
+        // container.addChild(sprite);
 
-        gameObjects.push({
-          id,
-          x,
-          y,
-          type: "CRATE",
-          width,
-          height,
-          angle: 0,
-          sprite,
-        });
+        // gameObjects.push({
+        //   id,
+        //   x,
+        //   y,
+        //   type: "CRATE",
+        //   shape: "rect",
+        //   width,
+        //   height,
+        //   angle: 0,
+        //   sprite,
+        // });
+
+        console.log(e.data.data);
+        gameObjects.push(e.data.data);
       }
       if (e.data.type == "PHYSICS_LOADED") {
         // initial spawn
@@ -127,10 +156,11 @@ async function startGame() {
       x: window.innerWidth / 2,
       y: window.innerHeight / 2,
       type: "PLAYER",
+      shape: "circle",
       graphics: {
         draw: true,
-        shape: "circle",
         line: 0xefefef,
+        fill: 0xff5522,
       },
     };
     worker.postMessage({
@@ -147,9 +177,36 @@ async function startGame() {
 
   app.ticker.stop();
 
+  const drawObjects = () => {
+    g.clear();
+    for (const object of gameObjects) {
+      // console.log(object);
+      if (!object.graphics) return;
+
+      g.beginFill(object.graphics.fill);
+      g.lineStyle({ width: 1, color: object.graphics.line });
+      if (object.shape == "circle") {
+        g.drawCircle(
+          object.x - object.width / 2,
+          object.y - object.height / 2,
+          object.width / 2
+        );
+      } else if (object.shape == "rect") {
+        g.drawRect(
+          object.x - object.width / 2,
+          object.y - object.height / 2,
+          object.width,
+          object.height
+        );
+      }
+      g.endFill();
+    }
+  };
+
   let start = performance.now();
   const gameLoop = () => {
     start = performance.now();
+    drawObjects();
     app.render();
     lastSpawnAttempt += delta;
 
@@ -170,10 +227,10 @@ export interface GameObject {
   width: number;
   height: number;
   angle: number;
+  shape: string;
   sprite?: PIXI.Sprite | undefined;
   graphics?: {
     draw: boolean;
-    shape: string;
     line: number;
     fill?: number;
   };
@@ -189,11 +246,6 @@ export type PositionSyncMap = {
 
 export interface PhysicsObjectOptions {
   isStatic: boolean;
-}
-
-export enum Shape {
-  SQUARE,
-  CIRCLE,
 }
 
 export enum MessageType {
