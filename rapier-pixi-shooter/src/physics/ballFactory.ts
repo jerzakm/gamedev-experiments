@@ -1,4 +1,5 @@
 import { Vector2, World } from "@dimforge/rapier2d-compat";
+import { ENV_BALL } from "../draw/_colorTheme";
 import { RAPIER } from "./physics";
 
 export const makeBall = (
@@ -19,6 +20,28 @@ export const makeBall = (
   const collider = world.createCollider(colliderDesc, body.handle);
 
   return { body, collider, definition };
+};
+
+export const spawnRandomBall = (
+  world: World,
+  RAPIER: RAPIER,
+  maxRadius?: number
+) => {
+  if (!maxRadius) {
+    maxRadius = Math.random();
+  }
+
+  const definition: BallDefinition = {
+    position: {
+      x: (0.1 + Math.random() * 0.8) * window.innerWidth,
+      y: (0.1 + Math.random() * 0.8) * window.innerHeight,
+    },
+    radius: 10 + Math.random() * 10,
+  };
+
+  console.log(definition.position);
+
+  return makeBall(world, RAPIER, definition);
 };
 
 export interface BallDefinition {
