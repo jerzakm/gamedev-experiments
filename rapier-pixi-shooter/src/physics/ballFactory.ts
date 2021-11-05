@@ -1,0 +1,27 @@
+import { Vector2, World } from "@dimforge/rapier2d-compat";
+import { RAPIER } from "./physics";
+
+export const makeBall = (
+  world: World,
+  RAPIER: RAPIER,
+  definition: BallDefinition
+) => {
+  const body = world.createRigidBody(
+    RAPIER.RigidBodyDesc.newStatic().setTranslation(
+      definition.position.x,
+      definition.position.y
+    )
+  );
+  let colliderDesc = new RAPIER.ColliderDesc(
+    new RAPIER.Ball(definition.radius)
+  ).setTranslation(0, 0);
+
+  const collider = world.createCollider(colliderDesc, body.handle);
+
+  return { body, collider, definition };
+};
+
+export interface BallDefinition {
+  position: Vector2;
+  radius: number;
+}

@@ -14,7 +14,12 @@ export const initWallGraphics = () => {
     }[]
   ) => {
     wallGraphics.clear();
-    wallGraphics.beginFill(WALL.fill);
+    wallGraphics.beginFill(WALL.fill, WALL.alpha);
+    wallGraphics.lineStyle({
+      alpha: WALL.alpha,
+      color: WALL.stroke,
+      width: WALL.strokeWidth,
+    });
     for (const wall of walls) {
       const { x, y } = wall.body.translation();
       const halfW = wall.collider.halfExtents().x;
