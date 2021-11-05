@@ -7,6 +7,7 @@
     "preview": "vite preview"
   },
   "devDependencies": {
+    "@types/combokeys": "^2.4.6",
     "@types/offscreencanvas": "^2019.6.4",
     "typescript": "^4.3.2",
     "vite": "^2.6.4"
@@ -14,6 +15,7 @@
   "dependencies": {
     "@dimforge/rapier2d": "^0.7.6",
     "@dimforge/rapier2d-compat": "^0.7.6",
+    "combokeys": "^3.0.1",
     "pixi.js": "^6.1.3"
   }
 }

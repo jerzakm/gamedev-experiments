@@ -2,6 +2,9 @@ import "./style/global.css";
 import * as PIXI from "pixi.js";
 import { Renderer } from "./renderer";
 import PhysicsWorker from "./physicsWorker?worker";
+import { initPhysics } from "./physics/physics";
+import { wallScreenArea } from "./physics/wallFactory";
+import { initWallGraphics } from "./draw/wallGraphics";
 
 async function startGame() {
   const worker = new PhysicsWorker();
@@ -217,7 +220,39 @@ async function startGame() {
   gameLoop();
 }
 
-startGame();
+// startGame();
+
+async function mainShooter() {
+  // RENDERER
+  const { app, stage } = new Renderer();
+  const container = new PIXI.Container();
+  stage.addChild(container);
+  const { wallGraphics, drawWalls } = initWallGraphics();
+
+  container.addChild(wallGraphics);
+
+  // PHYSICS
+  const physics = await initPhysics({ x: 0, y: 0 });
+  const { RAPIER, step, world } = physics;
+
+  let start = performance.now();
+  let delta = 0;
+
+  const walls = wallScreenArea(world, RAPIER, 50);
+
+  const gameLoop = () => {
+    start = performance.now();
+    drawWalls(walls);
+    app.render();
+    step(delta);
+    delta = performance.now() - start;
+    setTimeout(() => gameLoop(), delta);
+  };
+
+  gameLoop();
+}
+
+mainShooter();
 
 export interface GameObject {
   id: string | number;
