@@ -11,3 +11,10 @@ export const ENV_BALL = {
   stroke: 0x00000,
   strokeWidth: 2,
 };
+
+export const PLAYER = {
+  fill: 0xffffff,
+  alpha: 1.0,
+  stroke: 0x00000,
+  strokeWidth: 2,
+};

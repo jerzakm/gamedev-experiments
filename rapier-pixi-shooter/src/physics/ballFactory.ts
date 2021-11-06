@@ -1,5 +1,4 @@
 import { Vector2, World } from "@dimforge/rapier2d-compat";
-import { ENV_BALL } from "../draw/_colorTheme";
 import { RAPIER } from "./physics";
 
 export const makeBall = (
