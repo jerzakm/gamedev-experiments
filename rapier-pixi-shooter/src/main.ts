@@ -7,6 +7,7 @@ import { initWallGraphics } from "./draw/wallGraphics";
 import { BallDefinition, spawnRandomBall } from "./physics/ballFactory";
 import { initEnvBallGraphics } from "./draw/envBallGraphics";
 import { RigidBody, Collider } from "@dimforge/rapier2d-compat";
+import { setupPlayer } from "./player";
 
 async function mainShooter() {
   // RENDERER
@@ -20,7 +21,7 @@ async function mainShooter() {
   container.addChild(envBallGraphics);
 
   // PHYSICS
-  const physics = await initPhysics({ x: 2, y: 1 });
+  const physics = await initPhysics({ x: 0, y: 0 });
   const { RAPIER, step, world } = physics;
 
   let start = performance.now();
@@ -34,22 +35,16 @@ async function mainShooter() {
     definition: BallDefinition;
   }[] = [];
 
-  for (let i = 0; i < 15; i++) {
+  for (let i = 0; i < 1; i++) {
     envBalls.push(spawnRandomBall(world, RAPIER));
   }
 
-  const gameLoop = () => {
-    start = performance.now();
-    drawWalls(walls);
+  const { playerGraphics, drawPlayer, updatePlayer } = setupPlayer(
+    world,
+    RAPIER
+  );
 
-    drawEnvBalls(envBalls);
-    step(delta);
-    app.render();
-    delta = (performance.now() - start) / 60;
-    setTimeout(() => gameLoop(), delta);
-  };
-
-  // gameLoop();
+  container.addChild(playerGraphics);
 
   app.ticker.add((delta) => {
     const d = delta * 0.1;
@@ -59,10 +54,12 @@ async function mainShooter() {
       bouncyBall.collider.setRestitution(1);
       envBalls.push(bouncyBall);
     }
-
+    updatePlayer();
     drawWalls(walls);
     drawEnvBalls(envBalls);
+    drawPlayer();
     step(d);
+
     app.render();
   });
 }
