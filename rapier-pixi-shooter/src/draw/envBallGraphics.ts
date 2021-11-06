@@ -24,7 +24,6 @@ export const initEnvBallGraphics = () => {
       const { x, y } = ball.body.translation();
       const radius = ball.collider.radius();
       envBallGraphics.drawCircle(x, y, radius);
-      envBallGraphics.drawRect(x - radius, y - radius, radius * 2, radius * 2);
     }
     envBallGraphics.endFill();
   };

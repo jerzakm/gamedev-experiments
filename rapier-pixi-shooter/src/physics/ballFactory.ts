@@ -8,7 +8,7 @@ export const makeBall = (
   definition: BallDefinition
 ) => {
   const body = world.createRigidBody(
-    RAPIER.RigidBodyDesc.newStatic().setTranslation(
+    RAPIER.RigidBodyDesc.newDynamic().setTranslation(
       definition.position.x,
       definition.position.y
     )
@@ -34,12 +34,10 @@ export const spawnRandomBall = (
   const definition: BallDefinition = {
     position: {
       x: (0.1 + Math.random() * 0.8) * window.innerWidth,
-      y: (0.1 + Math.random() * 0.8) * window.innerHeight,
+      y: (0.05 + Math.random() * 0.1) * window.innerHeight,
     },
     radius: 10 + Math.random() * 10,
   };
-
-  console.log(definition.position);
 
   return makeBall(world, RAPIER, definition);
 };

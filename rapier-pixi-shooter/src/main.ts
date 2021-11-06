@@ -1,12 +1,12 @@
 import "./style/global.css";
 import * as PIXI from "pixi.js";
 import { Renderer } from "./renderer";
-import PhysicsWorker from "./physicsWorker?worker";
 import { initPhysics } from "./physics/physics";
 import { wallScreenArea } from "./physics/wallFactory";
 import { initWallGraphics } from "./draw/wallGraphics";
-import { spawnRandomBall } from "./physics/ballFactory";
+import { BallDefinition, spawnRandomBall } from "./physics/ballFactory";
 import { initEnvBallGraphics } from "./draw/envBallGraphics";
+import { RigidBody, Collider } from "@dimforge/rapier2d-compat";
 
 async function mainShooter() {
   // RENDERER
@@ -20,7 +20,7 @@ async function mainShooter() {
   container.addChild(envBallGraphics);
 
   // PHYSICS
-  const physics = await initPhysics({ x: 0, y: 0 });
+  const physics = await initPhysics({ x: 2, y: 1 });
   const { RAPIER, step, world } = physics;
 
   let start = performance.now();
@@ -28,7 +28,11 @@ async function mainShooter() {
 
   const walls = wallScreenArea(world, RAPIER, 50);
 
-  const envBalls: any = [];
+  const envBalls: {
+    body: RigidBody;
+    collider: Collider;
+    definition: BallDefinition;
+  }[] = [];
 
   for (let i = 0; i < 15; i++) {
     envBalls.push(spawnRandomBall(world, RAPIER));
@@ -37,14 +41,30 @@ async function mainShooter() {
   const gameLoop = () => {
     start = performance.now();
     drawWalls(walls);
+
     drawEnvBalls(envBalls);
-    app.render();
     step(delta);
-    delta = performance.now() - start;
+    app.render();
+    delta = (performance.now() - start) / 60;
     setTimeout(() => gameLoop(), delta);
   };
 
-  gameLoop();
+  // gameLoop();
+
+  app.ticker.add((delta) => {
+    const d = delta * 0.1;
+
+    if (Math.random() > 0.999) {
+      const bouncyBall = spawnRandomBall(world, RAPIER);
+      bouncyBall.collider.setRestitution(1);
+      envBalls.push(bouncyBall);
+    }
+
+    drawWalls(walls);
+    drawEnvBalls(envBalls);
+    step(d);
+    app.render();
+  });
 }
 
 mainShooter();
