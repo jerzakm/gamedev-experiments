@@ -6,6 +6,7 @@ export type RAPIER =
 export const initPhysics = async (gravity: Vector2) => {
   const RAPIER = await getRapier();
   // Use the RAPIER module here.
+
   const world = new RAPIER.World(gravity);
 
   const step = (delta?: number) => {

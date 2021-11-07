@@ -13,6 +13,8 @@ export const setupPlayer = (world: World, RAPIER: RAPIER) => {
   let x = 0;
   let y = 0;
 
+  collider.setActiveHooks(RAPIER.ActiveHooks.FILTER_CONTACT_PAIRS);
+
   const applyVelocity = () => {
     body.setLinvel({ x: x * MOVE_SPEED, y: y * MOVE_SPEED }, true);
     body.applyImpulse({ x: x * MOVE_SPEED, y: y * MOVE_SPEED }, true);
@@ -34,9 +36,27 @@ export const setupPlayer = (world: World, RAPIER: RAPIER) => {
 
   const updatePlayer = () => {
     applyVelocity();
-    // world.contactsWith(collider.handle, (c2) => {
-    //   console.log(c2);
-    // });
+
+    world.contactsWith(collider.handle, (c2) => {
+      const contactBody = world.getRigidBody(c2);
+
+      if (!contactBody.isDynamic()) {
+        const playerPos = body.translation();
+        const playerVelocity = body.linvel();
+
+        const contactPos = contactBody.translation();
+
+        const colliderPair = world.contactPair(
+          body.collider(0),
+          contactBody.collider(0),
+          (f) => {
+            console.log(f);
+          }
+        );
+
+        // console.log(playerPos, contactPos);
+      }
+    });
   };
 
   window.addEventListener("keydown", (e) => {
