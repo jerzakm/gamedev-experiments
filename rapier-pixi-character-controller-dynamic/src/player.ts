@@ -1,10 +1,10 @@
 import { World } from "@dimforge/rapier2d-compat";
 import { Graphics } from "pixi.js";
 import { PLAYER } from "./draw/_colorTheme";
-import { RAPIER } from "./physics/physics";
+import { RAPIER } from "./physics/core";
 
 const MOVE_SPEED = 100;
-const ACCELERATION = 500;
+const ACCELERATION = 75;
 
 export const setupPlayer = (world: World, RAPIER: RAPIER) => {
   const { body, collider } = makePlayerPhysicsBody(world, RAPIER);
@@ -13,13 +13,11 @@ export const setupPlayer = (world: World, RAPIER: RAPIER) => {
 
   let x = 0;
   let y = 0;
-  let breaking = false;
 
   collider.setActiveHooks(RAPIER.ActiveHooks.FILTER_CONTACT_PAIRS);
 
   const applyVelocity = () => {
     const velocity = body.linvel();
-
     const accelerationX = (x * MOVE_SPEED - velocity.x) * ACCELERATION;
     const accelerationY = (y * MOVE_SPEED - velocity.y) * ACCELERATION;
     body.applyImpulse({ x: accelerationX, y: accelerationY }, true);
@@ -41,19 +39,6 @@ export const setupPlayer = (world: World, RAPIER: RAPIER) => {
 
   const updatePlayer = () => {
     applyVelocity();
-
-    world.contactsWith(collider.handle, (c2) => {
-      const contactBody = world.getRigidBody(c2);
-
-      if (!contactBody.isDynamic()) {
-        const playerPos = body.translation();
-        const playerVelocity = body.linvel();
-
-        const contactPos = contactBody.translation();
-
-        // console.log(playerPos, contactPos);
-      }
-    });
   };
 
   window.addEventListener("keydown", (e) => {
@@ -108,14 +93,10 @@ const makePlayerPhysicsBody = (world: World, RAPIER: RAPIER) => {
       .setCanSleep(false)
   );
   let colliderDesc = new RAPIER.ColliderDesc(
-    new RAPIER.Ball(32)
+    new RAPIER.Ball(12)
   ).setTranslation(0, 0);
 
   const collider = world.createCollider(colliderDesc, body.handle);
 
   return { body, collider };
 };
-
-// I'm working on a character controller (2d), but I'm having some issues. I'm used to manipulating a body's velocity vector to move the player and NPCs around. From what I can see, controlling body's velocity makes it not collide with other Dynamic bodies. I suppose I have to roll my own resolver?
-
-// Did anyone work on something similar and could share? I've searched through this discord and already picked up a few useful tips but I'm not quite there yet :p

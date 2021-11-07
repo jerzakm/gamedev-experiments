@@ -1,7 +1,7 @@
 import "./style/global.css";
 import * as PIXI from "pixi.js";
 import { Renderer } from "./renderer";
-import { initPhysics } from "./physics/physics";
+import { initPhysics } from "./physics/core";
 import { wallScreenArea } from "./physics/wallFactory";
 import { initWallGraphics } from "./draw/wallGraphics";
 import { BallDefinition, spawnRandomBall } from "./physics/ballFactory";
@@ -24,21 +24,21 @@ async function mainShooter() {
   const physics = await initPhysics({ x: 0, y: 0 });
   const { RAPIER, step, world } = physics;
 
-  let start = performance.now();
-  let delta = 0;
-
+  // make walls
   const walls = wallScreenArea(world, RAPIER, 50);
 
+  //make balls
   const envBalls: {
     body: RigidBody;
     collider: Collider;
     definition: BallDefinition;
   }[] = [];
 
-  for (let i = 0; i < 15; i++) {
+  for (let i = 0; i < 200; i++) {
     envBalls.push(spawnRandomBall(world, RAPIER));
   }
 
+  //setup player
   const { playerGraphics, drawPlayer, updatePlayer } = setupPlayer(
     world,
     RAPIER
@@ -49,11 +49,12 @@ async function mainShooter() {
   app.ticker.add((delta) => {
     const d = delta * 0.1;
 
-    if (Math.random() > 0.999) {
-      const bouncyBall = spawnRandomBall(world, RAPIER);
-      bouncyBall.collider.setRestitution(1);
-      envBalls.push(bouncyBall);
-    }
+    // Ball spawns over time
+    // if (Math.random() > 0.99) {
+    //   const bouncyBall = spawnRandomBall(world, RAPIER);
+    //   bouncyBall.collider.setRestitution(1);
+    //   envBalls.push(bouncyBall);
+    // }
     updatePlayer();
     drawWalls(walls);
     drawEnvBalls(envBalls);

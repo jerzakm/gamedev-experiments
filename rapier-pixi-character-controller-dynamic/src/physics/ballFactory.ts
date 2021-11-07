@@ -1,5 +1,5 @@
 import { Vector2, World } from "@dimforge/rapier2d-compat";
-import { RAPIER } from "./physics";
+import { RAPIER } from "./core";
 
 export const makeBall = (
   world: World,
