@@ -12,9 +12,9 @@ export const makeBall = (
       definition.position.y
     )
   );
-  let colliderDesc = new RAPIER.ColliderDesc(
-    new RAPIER.Ball(definition.radius)
-  ).setTranslation(0, 0);
+  let colliderDesc = new RAPIER.ColliderDesc(new RAPIER.Ball(definition.radius))
+    .setTranslation(0, 0)
+    .setRestitution(1.0);
 
   const collider = world.createCollider(colliderDesc, body.handle);
 
@@ -32,8 +32,8 @@ export const spawnRandomBall = (
 
   const definition: BallDefinition = {
     position: {
-      x: (0.1 + Math.random() * 0.8) * window.innerWidth,
-      y: (0.05 + Math.random() * 0.1) * window.innerHeight,
+      x: (0.05 + Math.random() * 0.8) * window.innerWidth,
+      y: (0.05 + Math.random() * 0.8) * window.innerHeight,
     },
     radius: 10 + Math.random() * 10,
   };

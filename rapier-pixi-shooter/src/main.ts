@@ -35,7 +35,7 @@ async function mainShooter() {
     definition: BallDefinition;
   }[] = [];
 
-  for (let i = 0; i < 1; i++) {
+  for (let i = 0; i < 15; i++) {
     envBalls.push(spawnRandomBall(world, RAPIER));
   }
 

@@ -34,9 +34,9 @@ export const setupPlayer = (world: World, RAPIER: RAPIER) => {
 
   const updatePlayer = () => {
     applyVelocity();
-    world.contactsWith(collider.handle, (c2) => {
-      console.log(c2);
-    });
+    // world.contactsWith(collider.handle, (c2) => {
+    //   console.log(c2);
+    // });
   };
 
   window.addEventListener("keydown", (e) => {
