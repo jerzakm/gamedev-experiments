@@ -4,6 +4,7 @@ import { PLAYER } from "./draw/_colorTheme";
 import { RAPIER } from "./physics/physics";
 
 const MOVE_SPEED = 100;
+const ACCELERATION = 500;
 
 export const setupPlayer = (world: World, RAPIER: RAPIER) => {
   const { body, collider } = makePlayerPhysicsBody(world, RAPIER);
@@ -12,12 +13,16 @@ export const setupPlayer = (world: World, RAPIER: RAPIER) => {
 
   let x = 0;
   let y = 0;
+  let breaking = false;
 
   collider.setActiveHooks(RAPIER.ActiveHooks.FILTER_CONTACT_PAIRS);
 
   const applyVelocity = () => {
-    body.setLinvel({ x: x * MOVE_SPEED, y: y * MOVE_SPEED }, true);
-    body.applyImpulse({ x: x * MOVE_SPEED, y: y * MOVE_SPEED }, true);
+    const velocity = body.linvel();
+
+    const accelerationX = (x * MOVE_SPEED - velocity.x) * ACCELERATION;
+    const accelerationY = (y * MOVE_SPEED - velocity.y) * ACCELERATION;
+    body.applyImpulse({ x: accelerationX, y: accelerationY }, true);
   };
 
   const drawPlayer = () => {
@@ -45,14 +50,6 @@ export const setupPlayer = (world: World, RAPIER: RAPIER) => {
         const playerVelocity = body.linvel();
 
         const contactPos = contactBody.translation();
-
-        const colliderPair = world.contactPair(
-          body.collider(0),
-          contactBody.collider(0),
-          (f) => {
-            console.log(f);
-          }
-        );
 
         // console.log(playerPos, contactPos);
       }
@@ -106,7 +103,7 @@ export const setupPlayer = (world: World, RAPIER: RAPIER) => {
 
 const makePlayerPhysicsBody = (world: World, RAPIER: RAPIER) => {
   const body = world.createRigidBody(
-    RAPIER.RigidBodyDesc.newKinematicVelocityBased()
+    RAPIER.RigidBodyDesc.newDynamic()
       .setTranslation(window.innerWidth / 2, window.innerHeight / 2)
       .setCanSleep(false)
   );
