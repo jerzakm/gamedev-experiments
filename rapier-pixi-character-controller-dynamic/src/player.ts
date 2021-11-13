@@ -4,7 +4,7 @@ import { PLAYER } from "./draw/_colorTheme";
 import { RAPIER } from "./physics/core";
 
 const MOVE_SPEED = 80;
-const ACCELERATION = 80;
+const ACCELERATION = 40;
 
 export const setupPlayer = (world: World, RAPIER: RAPIER) => {
   const updatePlayer = () => {
@@ -29,20 +29,20 @@ export const setupPlayer = (world: World, RAPIER: RAPIER) => {
       }
     }
     // mouseonly logic end
-    const velocity = body.linvel();
 
     // Approach 1 - just setting velocity
-    body.setLinvel(
-      { x: direction.x * MOVE_SPEED, y: direction.y * MOVE_SPEED },
-      true
-    );
+    // body.setLinvel(
+    //   { x: direction.x * MOVE_SPEED, y: direction.y * MOVE_SPEED },
+    //   true
+    // );
 
     // Approach 2 - Applying impulse to body
-    // const impulse = {
-    //   x: (direction.x * MOVE_SPEED - velocity.x) * ACCELERATION,
-    //   y: (direction.y * MOVE_SPEED - velocity.y) * ACCELERATION,
-    // };
-    // body.applyImpulse(impulse, true);
+    const velocity = body.linvel();
+    const impulse = {
+      x: (direction.x * MOVE_SPEED - velocity.x) * ACCELERATION,
+      y: (direction.y * MOVE_SPEED - velocity.y) * ACCELERATION,
+    };
+    body.applyImpulse(impulse, true);
   };
 
   const drawPlayer = (delta = 16) => {

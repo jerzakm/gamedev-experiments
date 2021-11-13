@@ -130,7 +130,7 @@ const updatePlayer = () => {
 You might notice though, that the body isn't moving much. That's because we only set the direction vector to go from -1 to 1, and that isn't very fast. To combat that and make the code more reusable we add a `MOVE_SPEED` variable and multiply the x and y of the direction.
 
 ```ts
-const MOVE_SPEED = 50;
+const MOVE_SPEED = 80;
 
 const updatePlayer = () => {
   body.setLinvel(
@@ -144,3 +144,31 @@ That's more like it!
 
 **Bonus method: Applying force to move the body**
 When I was playing around and writing this article I found another cool way to make our player's body move. Instead of setting the velocity directly, we "push" the body to make it go in the desired direction at a desired speed. It gives a smoother, more natural feeling movement right out of the gate.
+
+The whole thing is just these few lines of code but it's a little more complicated than the previous example.
+
+The concept is simple. We apply impulse in order to make the body move, but what if it starts going too fast or we want to stop?
+
+We check the body's current velocity with `const velocity = body.linvel();`.Then, to determine what impulse should be applied next, we take the difference of the desired and current velocity for both axis `direction.x * MOVE_SPEED - velocity.x `. If the body is moving too fast or in the wrong direction, an impulse counteracting that is applied. We multiply it by `ACCELERATION` constant to.. drumroll - make the body accelerate faster or slower.
+
+![Moving with impulse.png](https://media.graphcms.com/3CtKK59cSQWohAcACggc)
+
+```ts
+const MOVE_SPEED = 80;
+const ACCELERATION = 40;
+
+const velocity = body.linvel();
+
+const impulse = {
+  x: (direction.x * MOVE_SPEED - velocity.x) * ACCELERATION,
+  y: (direction.y * MOVE_SPEED - velocity.y) * ACCELERATION,
+};
+body.applyImpulse(impulse, true);
+```
+
+You can achieve similar effect by using the velocity method and applying some form of [easing](https://developers.google.com/web/fundamentals/design-and-ux/animations/the-basics-of-easing).
+
+Note: For simplicity, I use `VELOCITY` and `ACCELERATION` in relation to one value of the vector. So velocity with value of `2` would look like this: `{x: 2, y: 2}`, where in reality velocity is almost always the length of such vector - `const velocity = Math.sqrt(2**2 + 2**2)` resulting in velocity of ~2.83!. This means that if we used my implementation in a game, moving diagonally would be 40% faster than going up and down!
+**TLDR; Use correct velocity, calculated for example with Pythagorem's theorem.**
+
+If you made it this far, thank you so much for reading. Let me know if you have any questions or maybe would like to see other things implemented.

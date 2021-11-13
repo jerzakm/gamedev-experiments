@@ -1,6 +1,8 @@
 import { Vector2 } from "@dimforge/rapier2d";
 import { getRapier } from "../rapier";
+
 export type RAPIER =
+  //@ts-ignore
   typeof import("D:/gamedev-experiments/rapier-pixi-shooter/node_modules/@dimforge/rapier2d-compat/exports");
 
 export const initPhysics = async (gravity: Vector2) => {
